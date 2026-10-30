@@ -167,6 +167,13 @@
           <label><input type="checkbox" name="pets"> חיות מחמד</label>
         </div>
       </fieldset>
+      <fieldset>
+        <legend>רק מודעות</legend>
+        <div class="checks">
+          <label><input type="checkbox" name="priceOnly" checked> עם מחיר</label>
+          <label><input type="checkbox" name="imageOnly" checked> עם תמונה</label>
+        </div>
+      </fieldset>
       <div class="row">
         <button type="submit" class="primary">פתח ביד2</button>
         <button type="button" id="save-search">שמור חיפוש</button>
@@ -264,7 +271,7 @@
     seen: 'ראיתי',
     rejected: 'לא רלוונטי'
   };
-  var FEATURES = { parking: 'חניה', shelter: 'ממ"ד', elevator: 'מעלית', balcony: 'מרפסת', airConditioner: 'מזגן', pets: 'חיות מחמד' };
+  var FEATURES = { parking: 'חניה', shelter: 'ממ"ד', elevator: 'מעלית', balcony: 'מרפסת', airConditioner: 'מזגן', pets: 'חיות מחמד', priceOnly: 'עם מחיר', imageOnly: 'עם תמונה' };
   var KEYS = { searches: 'yad2s.searches', listings: 'yad2s.listings' };
 
   // --- storage (may be unavailable in private mode) ---
