@@ -118,7 +118,20 @@
   <section>
     <h2>חיפוש חדש ביד2</h2>
     <form id="search-form">
-      <div class="grid">
+      <div>
+        <label for="region">אזור</label>
+        <select id="region" name="region">
+          <option value="tel-aviv-area">תל אביב והסביבה</option>
+          <option value="center-and-sharon">מרכז והשרון</option>
+          <option value="custom">אזור אחר (קישור מיד2)</option>
+        </select>
+      </div>
+      <div id="region-url-box" style="margin-top:12px" hidden>
+        <label for="regionUrl">קישור לאזור מיד2</label>
+        <input id="regionUrl" name="regionUrl" type="url" inputmode="url" placeholder="https://www.yad2.co.il/realestate/rent/...">
+        <p class="hint">בחרו ביד2 את האזור או העיר והדביקו כאן את הכתובת. הסינונים מהטופס יתווספו אליה.</p>
+      </div>
+      <div class="grid" style="margin-top:12px">
         <div>
           <label for="minPrice">מחיר מינימום (₪)</label>
           <input id="minPrice" name="minPrice" type="number" inputmode="numeric" min="0" step="100">
@@ -152,7 +165,7 @@
         <button type="button" id="save-search">שמור חיפוש</button>
       </div>
       <div class="link-out" id="link-preview"></div>
-      <p class="hint">החיפוש נפתח באתר יד2 עצמו. אם יד2 מציגה עמוד פתיחה במקום תוצאות, בחרו שם אזור והפעילו את הסינונים, ואז העתיקו את הקישור מהדפדפן ושמרו אותו למטה ב"חיפושים שמורים".</p>
+      <p class="hint">יד2 מחפשת לפי אזור, לכן חיפוש בכל הארץ = חיפוש שמור לכל אזור. אפשר לשמור כל אחד מהם ולפתוח בלחיצה.</p>
     </form>
   </section>
 
@@ -235,6 +248,8 @@
   'use strict';
 
   var YAD2_RENT = 'https://www.yad2.co.il/realestate/rent';
+  var REGIONS = { 'tel-aviv-area': 'תל אביב והסביבה', 'center-and-sharon': 'מרכז והשרון' };
+  var LOCATION_PARAMS = ['topArea', 'area', 'city', 'neighborhood', 'street'];
   var STATUSES = {
     new: 'חדש',
     contacted: 'פניתי',
@@ -286,9 +301,33 @@
   var searchForm = document.getElementById('search-form');
   var preview = document.getElementById('link-preview');
 
+  var regionBox = document.getElementById('region-url-box');
+
+  // Keeps only the region path and location params of a pasted Yad2 rent URL.
+  function cleanRegionBase(value) {
+    var href = cleanYad2Url(value);
+    if (!href) return null;
+    var u = new URL(href);
+    if (!/^\/realestate\/rent\/[a-z0-9-]+\/?$/.test(u.pathname)) return null;
+    var p = new URLSearchParams();
+    LOCATION_PARAMS.forEach(function (k) {
+      var v = u.searchParams.get(k);
+      if (v && /^[\d,]+$/.test(v)) p.set(k, v);
+    });
+    var q = p.toString();
+    return 'https://www.yad2.co.il' + u.pathname.replace(/\/$/, '') + (q ? '?' + q : '');
+  }
+  function baseFor(region, regionUrl) {
+    if (REGIONS[region]) return YAD2_RENT + '/' + region;
+    return cleanRegionBase(regionUrl);
+  }
+
   function readSearch() {
     var f = searchForm.elements;
+    regionBox.hidden = f.region.value !== 'custom';
     var s = {
+      base: baseFor(f.region.value, f.regionUrl.value),
+      regionName: REGIONS[f.region.value] || 'אזור מקישור',
       minPrice: cleanNumber(f.minPrice.value, 0, 100000),
       maxPrice: cleanNumber(f.maxPrice.value, 0, 100000),
       minRooms: cleanNumber(f.minRooms.value, 1, 12),
@@ -298,16 +337,18 @@
     return s;
   }
   function buildUrl(s) {
-    var p = new URLSearchParams();
+    if (!s.base) return null;
+    var u = new URL(s.base);
+    var p = u.searchParams;
+    p.set('property', '1');
     ['minPrice', 'maxPrice', 'minRooms', 'maxRooms'].forEach(function (k) {
       if (s[k] != null) p.set(k, s[k]);
     });
     s.features.forEach(function (k) { p.set(k, '1'); });
-    var q = p.toString();
-    return YAD2_RENT + (q ? '?' + q : '');
+    return u.href;
   }
   function describe(s) {
-    var parts = [];
+    var parts = [s.regionName];
     function range(min, max, unit) {
       if (min != null && max != null) return 'מ-' + min.toLocaleString('he-IL') + ' עד ' + max.toLocaleString('he-IL') + unit;
       if (min != null) return 'מ-' + min.toLocaleString('he-IL') + unit;
@@ -319,17 +360,22 @@
     if (price) parts.push(price);
     if (rooms) parts.push(rooms);
     s.features.forEach(function (k) { if (FEATURES[k]) parts.push(FEATURES[k]); });
-    return parts.join(' · ') || 'כל הדירות להשכרה';
+    return parts.filter(Boolean).join(' · ');
   }
-  function updatePreview() { preview.textContent = buildUrl(readSearch()); }
+  function updatePreview() {
+    preview.textContent = buildUrl(readSearch()) || 'הדביקו קישור תקין לאזור ביד2 (כתובת שמתחילה ב-yad2.co.il/realestate/rent/...).';
+  }
 
   searchForm.addEventListener('input', updatePreview);
   searchForm.addEventListener('submit', function (e) {
     e.preventDefault();
-    window.open(buildUrl(readSearch()), '_blank', 'noopener');
+    var url = buildUrl(readSearch());
+    if (url) window.open(url, '_blank', 'noopener');
+    else searchForm.elements.regionUrl.focus();
   });
   document.getElementById('save-search').addEventListener('click', function () {
     var s = readSearch();
+    if (!s.base) { searchForm.elements.regionUrl.focus(); return; }
     var list = load(KEYS.searches);
     list.unshift({ id: Date.now(), search: s });
     save(KEYS.searches, list.slice(0, 20));
@@ -353,13 +399,19 @@
       }
       var raw = entry.search || {};
       var s = {
+        base: cleanRegionBase(raw.base),
+        regionName: cleanText(raw.regionName, 40),
         minPrice: cleanNumber(raw.minPrice, 0, 100000),
         maxPrice: cleanNumber(raw.maxPrice, 0, 100000),
         minRooms: cleanNumber(raw.minRooms, 1, 12),
         maxRooms: cleanNumber(raw.maxRooms, 1, 12),
         features: (Array.isArray(raw.features) ? raw.features : []).filter(function (k) { return FEATURES.hasOwnProperty(k); })
       };
-      if (!href) { href = buildUrl(s); title = describe(s); }
+      if (!href) {
+        href = buildUrl(s);
+        if (!href) return;
+        title = describe(s);
+      }
       var open = el('a', { className: 'btn small primary', href: href, target: '_blank', rel: 'noopener', textContent: 'פתח ביד2' });
       var del = el('button', { type: 'button', className: 'small danger', textContent: 'מחק' });
       del.addEventListener('click', function () {
