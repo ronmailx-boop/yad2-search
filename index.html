@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>חיפוש דירות</title>
+<meta name="description" content="בונה חיפושים ליד2 ומעקב אישי אחרי דירות להשכרה">
+<style>
+  :root {
+    --bg: #f5f6f8;
+    --card: #ffffff;
+    --text: #1d2330;
+    --muted: #5d6677;
+    --border: #d9dde4;
+    --accent: #1f6feb;
+    --accent-text: #ffffff;
+    --danger: #c62828;
+    --ok: #2e7d32;
+    --radius: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12151b;
+      --card: #1c2029;
+      --text: #e8ebf0;
+      --muted: #a0a8b6;
+      --border: #333a47;
+      --accent: #4d8ff5;
+      --danger: #ef6b6b;
+      --ok: #6cc070;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  }
+  main { max-width: 720px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 1.5rem; margin: 8px 0 4px; }
+  h2 { font-size: 1.15rem; margin: 0 0 12px; }
+  .lead { color: var(--muted); margin: 0 0 16px; }
+  section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  label { display: block; font-size: .9rem; color: var(--muted); margin-bottom: 4px; }
+  input[type=number], input[type=text], input[type=url], select, textarea {
+    width: 100%;
+    padding: 10px;
+    font: inherit;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  textarea { min-height: 60px; resize: vertical; }
+  fieldset { border: 0; padding: 0; margin: 12px 0 0; }
+  legend { font-size: .9rem; color: var(--muted); margin-bottom: 6px; padding: 0; }
+  .checks { display: flex; flex-wrap: wrap; gap: 8px; }
+  .checks label {
+    display: flex; align-items: center; gap: 6px;
+    margin: 0; padding: 8px 12px;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  button, .btn {
+    font: inherit;
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+  .small { padding: 6px 10px; font-size: .9rem; }
+  .danger { color: var(--danger); }
+  .link-out {
+    margin-top: 12px; padding: 10px;
+    font-size: .8rem; color: var(--muted);
+    background: var(--bg); border-radius: 8px;
+    direction: ltr; text-align: left; word-break: break-all;
+  }
+  .hint { font-size: .85rem; color: var(--muted); margin: 8px 0 0; }
+  ul.list { list-style: none; margin: 0; padding: 0; }
+  ul.list li { border-top: 1px solid var(--border); padding: 12px 0; }
+  ul.list li:first-child { border-top: 0; }
+  .item-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+  .item-title { font-weight: 600; }
+  .item-meta { color: var(--muted); font-size: .9rem; }
+  .item-notes { white-space: pre-wrap; margin: 4px 0; }
+  .item-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; align-items: center; }
+  .item-actions select { width: auto; padding: 6px; }
+  .empty { color: var(--muted); }
+  .msg { font-size: .9rem; margin: 8px 0 0; min-height: 1.2em; }
+  .msg.err { color: var(--danger); }
+  .msg.ok { color: var(--ok); }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+  @media (max-width: 420px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>חיפוש דירות</h1>
+  <p class="lead">בונים חיפוש, פותחים אותו ביד2 ומנהלים כאן רשימה אישית של דירות שמעניינות אתכם. הכל נשמר רק בדפדפן הזה.</p>
+
+  <section>
+    <h2>חיפוש חדש ביד2</h2>
+    <form id="search-form">
+      <div class="grid">
+        <div>
+          <label for="minPrice">מחיר מינימום (₪)</label>
+          <input id="minPrice" name="minPrice" type="number" inputmode="numeric" min="0" step="100">
+        </div>
+        <div>
+          <label for="maxPrice">מחיר מקסימום (₪)</label>
+          <input id="maxPrice" name="maxPrice" type="number" inputmode="numeric" min="0" step="100" value="5000">
+        </div>
+        <div>
+          <label for="minRooms">חדרים מ-</label>
+          <input id="minRooms" name="minRooms" type="number" inputmode="decimal" min="1" max="12" step="0.5">
+        </div>
+        <div>
+          <label for="maxRooms">חדרים עד</label>
+          <input id="maxRooms" name="maxRooms" type="number" inputmode="decimal" min="1" max="12" step="0.5">
+        </div>
+      </div>
+      <fieldset>
+        <legend>חובה שיהיה</legend>
+        <div class="checks">
+          <label><input type="checkbox" name="parking" checked> חניה</label>
+          <label><input type="checkbox" name="shelter" checked> ממ"ד</label>
+          <label><input type="checkbox" name="elevator"> מעלית</label>
+          <label><input type="checkbox" name="balcony"> מרפסת</label>
+          <label><input type="checkbox" name="airConditioner"> מזגן</label>
+          <label><input type="checkbox" name="pets"> חיות מחמד</label>
+        </div>
+      </fieldset>
+      <div class="row">
+        <button type="submit" class="primary">פתח ביד2</button>
+        <button type="button" id="save-search">שמור חיפוש</button>
+      </div>
+      <div class="link-out" id="link-preview"></div>
+      <p class="hint">החיפוש נפתח באתר יד2 עצמו, בכל הארץ. כדאי לוודא שם שהסינונים מסומנים, ואפשר לשמור אותו כהתראה ביד2 כדי לקבל הודעה על כל מודעה חדשה.</p>
+    </form>
+  </section>
+
+  <section>
+    <h2>חיפושים שמורים</h2>
+    <ul class="list" id="saved-searches"></ul>
+  </section>
+
+  <section>
+    <h2>הוספת דירה למעקב</h2>
+    <form id="listing-form" novalidate>
+      <div>
+        <label for="l-url">קישור למודעה ביד2</label>
+        <input id="l-url" name="url" type="url" inputmode="url" placeholder="https://www.yad2.co.il/item/..." required>
+      </div>
+      <div class="grid" style="margin-top:12px">
+        <div>
+          <label for="l-city">עיר / שכונה</label>
+          <input id="l-city" name="city" type="text" maxlength="60">
+        </div>
+        <div>
+          <label for="l-price">מחיר (₪)</label>
+          <input id="l-price" name="price" type="number" inputmode="numeric" min="0" step="50">
+        </div>
+        <div>
+          <label for="l-rooms">חדרים</label>
+          <input id="l-rooms" name="rooms" type="number" inputmode="decimal" min="1" max="12" step="0.5">
+        </div>
+        <div>
+          <label for="l-phone">טלפון</label>
+          <input id="l-phone" name="phone" type="text" inputmode="tel" maxlength="20" dir="ltr">
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <label for="l-notes">הערות</label>
+        <textarea id="l-notes" name="notes" maxlength="500"></textarea>
+      </div>
+      <div class="row">
+        <button type="submit" class="primary">הוסף לרשימה</button>
+      </div>
+      <p class="msg" id="listing-msg" role="status"></p>
+    </form>
+  </section>
+
+  <section>
+    <h2>הדירות שלי</h2>
+    <div class="filters">
+      <select id="status-filter" aria-label="סינון לפי סטטוס"></select>
+      <select id="sort" aria-label="מיון">
+        <option value="new">החדשות קודם</option>
+        <option value="price">מחיר: מהזול ליקר</option>
+      </select>
+    </div>
+    <ul class="list" id="listings"></ul>
+    <div class="row">
+      <button type="button" class="small" id="export">ייצוא לקובץ</button>
+      <label class="btn small" for="import" style="margin:0;color:var(--text)">ייבוא מקובץ</label>
+      <input type="file" id="import" accept="application/json" hidden>
+    </div>
+    <p class="msg" id="data-msg" role="status"></p>
+  </section>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  var YAD2_RENT = 'https://www.yad2.co.il/realestate/rent';
+  var STATUSES = {
+    new: 'חדש',
+    contacted: 'פניתי',
+    visit: 'נקבע ביקור',
+    seen: 'ראיתי',
+    rejected: 'לא רלוונטי'
+  };
+  var FEATURES = { parking: 'חניה', shelter: 'ממ"ד', elevator: 'מעלית', balcony: 'מרפסת', airConditioner: 'מזגן', pets: 'חיות מחמד' };
+  var KEYS = { searches: 'yad2s.searches', listings: 'yad2s.listings' };
+
+  // --- storage (may be unavailable in private mode) ---
+  function load(key) {
+    try { return JSON.parse(localStorage.getItem(key)) || []; } catch (e) { return []; }
+  }
+  function save(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch (e) { return false; }
+  }
+
+  // --- sanitizing ---
+  function cleanText(value, max) {
+    return String(value == null ? '' : value).replace(/[\u0000-\u001f<>]/g, ' ').trim().slice(0, max);
+  }
+  function cleanNumber(value, min, max) {
+    var n = Number(value);
+    if (value === '' || value == null || !isFinite(n)) return null;
+    return Math.min(Math.max(n, min), max);
+  }
+  function cleanYad2Url(value) {
+    try {
+      var u = new URL(String(value).trim());
+      if (u.protocol !== 'https:') return null;
+      if (u.hostname !== 'yad2.co.il' && !u.hostname.endsWith('.yad2.co.il')) return null;
+      return u.href;
+    } catch (e) { return null; }
+  }
+
+  function el(tag, props, children) {
+    var node = document.createElement(tag);
+    if (props) Object.keys(props).forEach(function (k) { node[k] = props[k]; });
+    (children || []).forEach(function (c) { if (c) node.appendChild(c); });
+    return node;
+  }
+  function setMsg(node, text, kind) {
+    node.textContent = text;
+    node.className = 'msg' + (kind ? ' ' + kind : '');
+  }
+
+  // --- search builder ---
+  var searchForm = document.getElementById('search-form');
+  var preview = document.getElementById('link-preview');
+
+  function readSearch() {
+    var f = searchForm.elements;
+    var s = {
+      minPrice: cleanNumber(f.minPrice.value, 0, 100000),
+      maxPrice: cleanNumber(f.maxPrice.value, 0, 100000),
+      minRooms: cleanNumber(f.minRooms.value, 1, 12),
+      maxRooms: cleanNumber(f.maxRooms.value, 1, 12),
+      features: Object.keys(FEATURES).filter(function (k) { return f[k].checked; })
+    };
+    return s;
+  }
+  function buildUrl(s) {
+    var p = new URLSearchParams();
+    ['minPrice', 'maxPrice', 'minRooms', 'maxRooms'].forEach(function (k) {
+      if (s[k] != null) p.set(k, s[k]);
+    });
+    s.features.forEach(function (k) { p.set(k, '1'); });
+    var q = p.toString();
+    return YAD2_RENT + (q ? '?' + q : '');
+  }
+  function describe(s) {
+    var parts = [];
+    function range(min, max, unit) {
+      if (min != null && max != null) return 'מ-' + min.toLocaleString('he-IL') + ' עד ' + max.toLocaleString('he-IL') + unit;
+      if (min != null) return 'מ-' + min.toLocaleString('he-IL') + unit;
+      if (max != null) return 'עד ' + max.toLocaleString('he-IL') + unit;
+      return null;
+    }
+    var price = range(s.minPrice, s.maxPrice, ' ₪');
+    var rooms = range(s.minRooms, s.maxRooms, ' חד׳');
+    if (price) parts.push(price);
+    if (rooms) parts.push(rooms);
+    s.features.forEach(function (k) { if (FEATURES[k]) parts.push(FEATURES[k]); });
+    return parts.join(' · ') || 'כל הדירות להשכרה';
+  }
+  function updatePreview() { preview.textContent = buildUrl(readSearch()); }
+
+  searchForm.addEventListener('input', updatePreview);
+  searchForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    window.open(buildUrl(readSearch()), '_blank', 'noopener');
+  });
+  document.getElementById('save-search').addEventListener('click', function () {
+    var s = readSearch();
+    var list = load(KEYS.searches);
+    list.unshift({ id: Date.now(), search: s });
+    save(KEYS.searches, list.slice(0, 20));
+    renderSearches();
+  });
+
+  function renderSearches() {
+    var ul = document.getElementById('saved-searches');
+    var list = load(KEYS.searches);
+    ul.textContent = '';
+    if (!list.length) {
+      ul.appendChild(el('li', { className: 'empty', textContent: 'עדיין אין חיפושים שמורים.' }));
+      return;
+    }
+    list.forEach(function (entry) {
+      var raw = entry.search || {};
+      var s = {
+        minPrice: cleanNumber(raw.minPrice, 0, 100000),
+        maxPrice: cleanNumber(raw.maxPrice, 0, 100000),
+        minRooms: cleanNumber(raw.minRooms, 1, 12),
+        maxRooms: cleanNumber(raw.maxRooms, 1, 12),
+        features: (Array.isArray(raw.features) ? raw.features : []).filter(function (k) { return FEATURES.hasOwnProperty(k); })
+      };
+      var open = el('a', { className: 'btn small primary', href: buildUrl(s), target: '_blank', rel: 'noopener', textContent: 'פתח ביד2' });
+      var del = el('button', { type: 'button', className: 'small danger', textContent: 'מחק' });
+      del.addEventListener('click', function () {
+        save(KEYS.searches, load(KEYS.searches).filter(function (x) { return x.id !== entry.id; }));
+        renderSearches();
+      });
+      ul.appendChild(el('li', null, [
+        el('div', { className: 'item-title', textContent: describe(s) }),
+        el('div', { className: 'item-actions' }, [open, del])
+      ]));
+    });
+  }
+
+  // --- listings tracker ---
+  var listingForm = document.getElementById('listing-form');
+  var listingMsg = document.getElementById('listing-msg');
+  var statusFilter = document.getElementById('status-filter');
+  var sortSelect = document.getElementById('sort');
+
+  statusFilter.appendChild(el('option', { value: 'all', textContent: 'כל הסטטוסים' }));
+  Object.keys(STATUSES).forEach(function (k) {
+    statusFilter.appendChild(el('option', { value: k, textContent: STATUSES[k] }));
+  });
+
+  function normalizeListing(raw) {
+    var url = cleanYad2Url(raw && raw.url);
+    if (!url) return null;
+    return {
+      id: Number(raw.id) || Date.now() + Math.random(),
+      url: url,
+      city: cleanText(raw.city, 60),
+      price: cleanNumber(raw.price, 0, 100000),
+      rooms: cleanNumber(raw.rooms, 1, 12),
+      phone: cleanText(raw.phone, 20).replace(/[^\d+\- ]/g, ''),
+      notes: cleanText(raw.notes, 500),
+      status: STATUSES[raw.status] ? raw.status : 'new',
+      added: Number(raw.added) || Date.now()
+    };
+  }
+
+  listingForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var f = listingForm.elements;
+    var item = normalizeListing({
+      url: f.url.value, city: f.city.value, price: f.price.value,
+      rooms: f.rooms.value, phone: f.phone.value, notes: f.notes.value
+    });
+    if (!item) {
+      setMsg(listingMsg, 'צריך להדביק קישור תקין למודעה באתר yad2.co.il.', 'err');
+      f.url.focus();
+      return;
+    }
+    var list = load(KEYS.listings);
+    if (list.some(function (x) { return x.url === item.url; })) {
+      setMsg(listingMsg, 'הדירה הזו כבר ברשימה.', 'err');
+      return;
+    }
+    list.unshift(item);
+    if (!save(KEYS.listings, list)) {
+      setMsg(listingMsg, 'לא ניתן לשמור בדפדפן הזה (אולי מצב גלישה פרטית).', 'err');
+      return;
+    }
+    listingForm.reset();
+    setMsg(listingMsg, 'נוסף לרשימה.', 'ok');
+    renderListings();
+  });
+
+  function updateListing(id, changes) {
+    var list = load(KEYS.listings).map(function (x) {
+      return x.id === id ? Object.assign({}, x, changes) : x;
+    });
+    save(KEYS.listings, list);
+    renderListings();
+  }
+
+  function renderListings() {
+    var ul = document.getElementById('listings');
+    var filter = statusFilter.value;
+    var list = load(KEYS.listings).map(normalizeListing).filter(Boolean);
+    if (filter !== 'all') list = list.filter(function (x) { return x.status === filter; });
+    if (sortSelect.value === 'price') {
+      list.sort(function (a, b) { return (a.price == null ? Infinity : a.price) - (b.price == null ? Infinity : b.price); });
+    } else {
+      list.sort(function (a, b) { return b.added - a.added; });
+    }
+
+    ul.textContent = '';
+    if (!list.length) {
+      ul.appendChild(el('li', { className: 'empty', textContent: 'אין דירות להצגה.' }));
+      return;
+    }
+    list.forEach(function (item) {
+      var meta = [];
+      if (item.rooms != null) meta.push(item.rooms + ' חד׳');
+      if (item.phone) meta.push(item.phone);
+      meta.push('נוסף ' + new Date(item.added).toLocaleDateString('he-IL'));
+
+      var status = el('select');
+      status.setAttribute('aria-label', 'סטטוס');
+      Object.keys(STATUSES).forEach(function (k) {
+        status.appendChild(el('option', { value: k, textContent: STATUSES[k], selected: k === item.status }));
+      });
+      status.addEventListener('change', function () { updateListing(item.id, { status: status.value }); });
+
+      var del = el('button', { type: 'button', className: 'small danger', textContent: 'מחק' });
+      del.addEventListener('click', function () {
+        if (!confirm('למחוק את הדירה מהרשימה?')) return;
+        save(KEYS.listings, load(KEYS.listings).filter(function (x) { return x.id !== item.id; }));
+        renderListings();
+      });
+
+      ul.appendChild(el('li', null, [
+        el('div', { className: 'item-head' }, [
+          el('span', { className: 'item-title', textContent: item.city || 'ללא מיקום' }),
+          el('span', { className: 'item-title', textContent: item.price != null ? item.price.toLocaleString('he-IL') + ' ₪' : '' })
+        ]),
+        el('div', { className: 'item-meta', textContent: meta.join(' · ') }),
+        item.notes ? el('p', { className: 'item-notes', textContent: item.notes }) : null,
+        el('div', { className: 'item-actions' }, [
+          el('a', { className: 'btn small', href: item.url, target: '_blank', rel: 'noopener', textContent: 'למודעה' }),
+          status,
+          del
+        ])
+      ]));
+    });
+  }
+
+  statusFilter.addEventListener('change', renderListings);
+  sortSelect.addEventListener('change', renderListings);
+
+  // --- export / import ---
+  var dataMsg = document.getElementById('data-msg');
+  document.getElementById('export').addEventListener('click', function () {
+    var data = { searches: load(KEYS.searches), listings: load(KEYS.listings) };
+    var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    var a = el('a', { href: URL.createObjectURL(blob), download: 'yad2-search-backup.json' });
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  });
+  document.getElementById('import').addEventListener('change', function (e) {
+    var file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    if (file.size > 1000000) { setMsg(dataMsg, 'הקובץ גדול מדי.', 'err'); return; }
+    file.text().then(function (text) {
+      var data = JSON.parse(text);
+      var incoming = (Array.isArray(data.listings) ? data.listings : []).map(normalizeListing).filter(Boolean);
+      var list = load(KEYS.listings);
+      var urls = list.map(function (x) { return x.url; });
+      var added = incoming.filter(function (x) { return urls.indexOf(x.url) === -1; });
+      save(KEYS.listings, added.concat(list));
+      if (Array.isArray(data.searches) && !load(KEYS.searches).length) {
+        save(KEYS.searches, data.searches.slice(0, 20));
+      }
+      setMsg(dataMsg, 'יובאו ' + added.length + ' דירות.', 'ok');
+      renderSearches();
+      renderListings();
+    }).catch(function () {
+      setMsg(dataMsg, 'לא הצלחתי לקרוא את הקובץ. ודאו שזה קובץ גיבוי מהעמוד הזה.', 'err');
+    });
+  });
+
+  updatePreview();
+  renderSearches();
+  renderListings();
+})();
+</script>
+</body>
+</html>
