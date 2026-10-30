@@ -15,6 +15,7 @@
 - [x] ייצוא/ייבוא גיבוי
 - [x] אימות פרמטרי ה-URL מול יד2: `/realestate/rent/<region>?property=1&maxPrice=&parking=1&shelter=1&elevator=1&airConditioner=1` (אושר מקישור של המשתמש)
 - [x] בחירת אזור בבונה (tel-aviv-area, center-and-sharon, south, north-and-valleys — כולם אומתו מקישורים של המשתמש; או קישור אזור מיד2)
+- [x] אייקון (icons/, נוצר מ-icon.svg) + manifest.json; אריח ב-my-site (apps.vplusstudio.app) מפנה ל-dirot
 - [ ] שמות (slug) של שאר האזורים ביד2 — להוסיף לרשימה כשיתקבלו קישורים
 - [x] שמירת קישור חיפוש שמועתק מיד2 (עוקף את הבעיה)
 - [x] קבצי פריסה ל-Cloudflare Workers (`dirot` → https://dirot.vplusstudio.app, https://dirot.ronmailx.workers.dev)
