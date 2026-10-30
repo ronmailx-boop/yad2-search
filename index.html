@@ -152,13 +152,27 @@
         <button type="button" id="save-search">שמור חיפוש</button>
       </div>
       <div class="link-out" id="link-preview"></div>
-      <p class="hint">החיפוש נפתח באתר יד2 עצמו, בכל הארץ. כדאי לוודא שם שהסינונים מסומנים, ואפשר לשמור אותו כהתראה ביד2 כדי לקבל הודעה על כל מודעה חדשה.</p>
+      <p class="hint">החיפוש נפתח באתר יד2 עצמו. אם יד2 מציגה עמוד פתיחה במקום תוצאות, בחרו שם אזור והפעילו את הסינונים, ואז העתיקו את הקישור מהדפדפן ושמרו אותו למטה ב"חיפושים שמורים".</p>
     </form>
   </section>
 
   <section>
     <h2>חיפושים שמורים</h2>
-    <ul class="list" id="saved-searches"></ul>
+    <form id="link-form" novalidate>
+      <div>
+        <label for="s-url">קישור לחיפוש שהעתקתם מיד2</label>
+        <input id="s-url" name="url" type="url" inputmode="url" placeholder="https://www.yad2.co.il/realestate/rent/..." required>
+      </div>
+      <div style="margin-top:12px">
+        <label for="s-name">שם לחיפוש</label>
+        <input id="s-name" name="name" type="text" maxlength="60" placeholder='למשל: מרכז עד 5,000 עם חניה וממ"ד'>
+      </div>
+      <div class="row">
+        <button type="submit" class="primary">שמור קישור</button>
+      </div>
+      <p class="msg" id="link-msg" role="status"></p>
+    </form>
+    <ul class="list" id="saved-searches" style="margin-top:12px"></ul>
   </section>
 
   <section>
@@ -331,6 +345,12 @@
       return;
     }
     list.forEach(function (entry) {
+      var href, title;
+      if (entry.url) {
+        href = cleanYad2Url(entry.url);
+        if (!href) return;
+        title = cleanText(entry.name, 60) || 'חיפוש שמור מיד2';
+      }
       var raw = entry.search || {};
       var s = {
         minPrice: cleanNumber(raw.minPrice, 0, 100000),
@@ -339,18 +359,40 @@
         maxRooms: cleanNumber(raw.maxRooms, 1, 12),
         features: (Array.isArray(raw.features) ? raw.features : []).filter(function (k) { return FEATURES.hasOwnProperty(k); })
       };
-      var open = el('a', { className: 'btn small primary', href: buildUrl(s), target: '_blank', rel: 'noopener', textContent: 'פתח ביד2' });
+      if (!href) { href = buildUrl(s); title = describe(s); }
+      var open = el('a', { className: 'btn small primary', href: href, target: '_blank', rel: 'noopener', textContent: 'פתח ביד2' });
       var del = el('button', { type: 'button', className: 'small danger', textContent: 'מחק' });
       del.addEventListener('click', function () {
         save(KEYS.searches, load(KEYS.searches).filter(function (x) { return x.id !== entry.id; }));
         renderSearches();
       });
       ul.appendChild(el('li', null, [
-        el('div', { className: 'item-title', textContent: describe(s) }),
+        el('div', { className: 'item-title', textContent: title }),
         el('div', { className: 'item-actions' }, [open, del])
       ]));
     });
   }
+
+  var linkForm = document.getElementById('link-form');
+  var linkMsg = document.getElementById('link-msg');
+  linkForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var url = cleanYad2Url(linkForm.elements.url.value);
+    if (!url) {
+      setMsg(linkMsg, 'צריך להדביק קישור תקין מאתר yad2.co.il.', 'err');
+      linkForm.elements.url.focus();
+      return;
+    }
+    var list = load(KEYS.searches);
+    list.unshift({ id: Date.now(), url: url, name: cleanText(linkForm.elements.name.value, 60) });
+    if (!save(KEYS.searches, list.slice(0, 20))) {
+      setMsg(linkMsg, 'לא ניתן לשמור בדפדפן הזה (אולי מצב גלישה פרטית).', 'err');
+      return;
+    }
+    linkForm.reset();
+    setMsg(linkMsg, 'החיפוש נשמר.', 'ok');
+    renderSearches();
+  });
 
   // --- listings tracker ---
   var listingForm = document.getElementById('listing-form');
