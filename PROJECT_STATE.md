@@ -13,7 +13,9 @@
 - [x] חיפושים שמורים
 - [x] רשימת מעקב אחרי מודעות עם סטטוס, הערות, סינון ומיון
 - [x] ייצוא/ייבוא גיבוי
-- [ ] אימות פרמטרי ה-URL מול יד2 — נבדק: קישור בלי אזור פותח עמוד פתיחה ולא חיפוש. מחכים לקישור אמיתי מיד2 כדי לתקן את הבונה
+- [x] אימות פרמטרי ה-URL מול יד2: `/realestate/rent/<region>?property=1&maxPrice=&parking=1&shelter=1&elevator=1&airConditioner=1` (אושר מקישור של המשתמש)
+- [x] בחירת אזור בבונה (tel-aviv-area, center-and-sharon, או קישור אזור מיד2)
+- [ ] שמות (slug) של שאר האזורים ביד2 — להוסיף לרשימה כשיתקבלו קישורים
 - [x] שמירת קישור חיפוש שמועתק מיד2 (עוקף את הבעיה)
 - [x] קבצי פריסה ל-Cloudflare Workers (`dirot` → https://dirot.vplusstudio.app, https://dirot.ronmailx.workers.dev)
 - [x] Secret `CLOUDFLARE_API_TOKEN` בריפו
