@@ -5,3 +5,7 @@
 - הכל ב-`index.html` אחד, בלי build ובלי שרת.
 - הנתונים נשמרים רק ב-localStorage של הדפדפן; אפשר לייצא/לייבא קובץ גיבוי.
 - העמוד לא שולף נתונים מיד2 — הוא רק פותח את החיפוש באתר שלהם.
+
+## כתובת
+
+https://dirot.vplusstudio.app (וגם https://dirot.ronmailx.workers.dev) — פריסה אוטומטית ל-Cloudflare Workers בכל push ל-`main`.

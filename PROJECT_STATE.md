@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Focus
-עמוד בית סטטי (`index.html`) לחיפוש דירות ביד2 ומעקב אישי. הצעד הבא: להחליט על אירוח (GitHub Pages / Cloudflare Workers לפי CLAUDE.md).
+עמוד בית סטטי (`index.html`) לחיפוש דירות ביד2 ומעקב אישי. הצעד הבא: מיזוג ל-main, הוספת ה-Secret `CLOUDFLARE_API_TOKEN`, ובדיקת הלוג של "Deploy to Cloudflare".
 
 ## Decisions
 - אין סקרייפינג של יד2: האתר מוגן ע"י Radware, ועקיפה מנוגדת לתנאי השימוש. העמוד רק בונה קישורי חיפוש ופותח אותם ביד2.
@@ -14,5 +14,7 @@
 - [x] רשימת מעקב אחרי מודעות עם סטטוס, הערות, סינון ומיון
 - [x] ייצוא/ייבוא גיבוי
 - [ ] אימות פרמטרי ה-URL מול יד2 בטלפון
-- [ ] אירוח (GitHub Pages או Cloudflare)
+- [x] קבצי פריסה ל-Cloudflare Workers (`dirot` → https://dirot.vplusstudio.app, https://dirot.ronmailx.workers.dev)
+- [ ] Secret `CLOUDFLARE_API_TOKEN` בריפו (המשתמש)
+- [ ] מיזוג ל-main ואימות הפריסה בלוג
 - [ ] מסמכים משפטיים ב-docs/legal (אם העמוד יהיה ציבורי)
